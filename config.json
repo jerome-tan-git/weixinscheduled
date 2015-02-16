@@ -1,0 +1,50 @@
+{
+	"phantomJSPath":"C:\\phantomjs\\phantomjs.exe",
+	"redisKey":"commsg",
+	"appPath":"C:\\Users\\jetan\\workspace_ee_1\\Receiver",
+	"urls":[
+		{
+			"id":"1",
+			"url":"http://app101.dev.la1.vcinv.net:8080/kibana/#/dashboard/elasticsearch/Dashboard_solrupdate",
+			"schedule":[
+				{
+					"time":"30 14 * * *",
+					"toTag":"1|2"
+				},
+				{
+					"time":"1 0 * * *",
+					"toTag":"4|3"
+				}
+				
+			]
+		},
+		{
+			"id":"2",
+			"url":"http://app101.dev.la1.vcinv.net:8080/kibana/#/dashboard/elasticsearch/Dashboard_traffic",
+			"schedule":[
+				{
+					"time":"30 14 * * *",
+					"toTag":"2"
+				},
+				{
+					"time":"1 0 * * *",
+					"toTag":"3"
+				}
+			]
+		},
+		{
+			"id":"3",
+			"url":"http://app101.dev.la1.vcinv.net:8080/kibana/#/dashboard/elasticsearch/INV_MARKET_SIMULATOR_API",
+			"schedule":[
+				{
+					"time":"38 14 * * *",
+					"toTag":"1"
+				},
+				{
+					"time":"1 0 * * *",
+					"toTag":"4"
+				}
+			]
+		}
+	]
+}
