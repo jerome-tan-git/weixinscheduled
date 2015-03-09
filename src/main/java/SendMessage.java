@@ -88,6 +88,105 @@ public class SendMessage {
 		return result;
 	}
 
+	public static void SendAnyURL(String _toUser, Config _config, String _URL)
+			throws ClientProtocolException, IOException, JSONException {
+		System.setProperty("phantomjs.binary.path", _config.getPhantomJSPath());
+		WebDriver driver = new PhantomJSDriver();
+		String name1 = UUID.randomUUID().toString();
+		String name2 = UUID.randomUUID().toString();
+		driver.manage().timeouts().implicitlyWait(60, TimeUnit.SECONDS);
+		driver.manage().timeouts().pageLoadTimeout(60, TimeUnit.SECONDS);
+		driver.manage().window().setSize(new Dimension(800, 1000));
+		driver.get(_URL);
+		try {
+			Thread.sleep(30000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		java.io.File screenShotFile = ((TakesScreenshot) driver)
+				.getScreenshotAs(OutputType.FILE);
+		FileUtils.copyFile(screenShotFile, new java.io.File("./" + name1
+				+ ".png"));
+
+		BufferedImage bufferedImage = ImageIO.read(new File("./" + name1
+				+ ".png"));
+
+		// create a blank, RGB, same width and height, and a white
+		// background
+		BufferedImage newBufferedImage = new BufferedImage(
+				bufferedImage.getWidth(), bufferedImage.getHeight(),
+				BufferedImage.TYPE_INT_RGB);
+		newBufferedImage.createGraphics().drawImage(bufferedImage, 0, 0,
+				Color.WHITE, null);
+
+		// write to jpeg file
+		ImageIO.write(newBufferedImage, "jpg", new File("./" + name2 + ".jpg"));
+		// wx58af015bc449fdad
+		// Q9N_PbMW9yW06YXXg1izxTRszztrsYxiCBALqEmIUewkLzr97oa9IsWLAulplxDn
+		// https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=APPID&secret=APPSECRET
+
+		HttpClient httpclient = new DefaultHttpClient();
+		HttpGet hg = new HttpGet(
+				"https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=wx58af015bc449fdad&corpsecret=Q9N_PbMW9yW06YXXg1izxTRszztrsYxiCBALqEmIUewkLzr97oa9IsWLAulplxDn");
+		// HttpGet hg = new HttpGet(
+		// "https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=wx58af015bc449fdad&corpsecret=Q9N_PbMW9yW06YXXg1izxTRszztrsYxiCBALqEmIUewkLzr97oa9IsWLAulplxDn");
+		HttpResponse response = httpclient.execute(hg);
+		HttpEntity resEntity = response.getEntity();
+		try {
+			if (resEntity != null) {
+				String page = EntityUtils.toString(resEntity);
+				JSONObject jsonObject = new JSONObject(page);
+				String token = "";
+				token = (String) jsonObject.get("access_token");
+				if (!token.trim().equals("")) {
+					System.out.println("token: " + token);
+
+					HttpPost httppost = new HttpPost(
+							"https://qyapi.weixin.qq.com/cgi-bin/media/upload?access_token="
+									+ token + "&type=image");
+					MultipartEntity reqEntity = new MultipartEntity(
+							HttpMultipartMode.BROWSER_COMPATIBLE);
+
+					FileBody bin = new FileBody(new File("./" + name2 + ".jpg"));
+					reqEntity.addPart("media", bin);
+
+					httppost.setEntity(reqEntity);
+
+					System.out.println("executing request "
+							+ httppost.getRequestLine());
+					HttpResponse response1 = httpclient.execute(httppost);
+					HttpEntity resEntity1 = response1.getEntity();
+					String mediaID = "";
+					if (resEntity != null) {
+						String page1 = EntityUtils.toString(resEntity1);
+						JSONObject jsonObject1 = new JSONObject(page1);
+						mediaID = (String) jsonObject1.get("media_id");
+						String url = "https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token="
+								+ token;
+						String params = "{\"touser\":\""
+								+ _toUser
+								+ "\",\"msgtype\":\"image\",\"agentid\":\"2\",\"image\": {\"media_id\": \""
+								+ mediaID + "\"},}";
+						String str = SendMessage.sendPost(url, params);
+						System.out.println(str);
+
+					}
+
+				}
+			}
+			File a = new File("./" + name1 + ".png");
+			a.delete();
+			a = new File("./" + name2 + ".jpg");
+			a.delete();
+		} catch (Exception e) {
+
+		} finally {
+			driver.quit();
+		}
+
+	}
+
 	public static void SendPic(String _toUser, Config _config, String _urlID)
 			throws IOException, InterruptedException, JSONException {
 		Boolean validID = false;
@@ -197,8 +296,9 @@ public class SendMessage {
 		a.delete();
 		driver.quit();
 	}
-	public static void SendAnyImage(String _toUser, String _imagePath) throws ClientProtocolException, IOException, JSONException
-	{
+
+	public static void SendAnyImage(String _toUser, String _imagePath)
+			throws ClientProtocolException, IOException, JSONException {
 		HttpClient httpclient = new DefaultHttpClient();
 		HttpGet hg = new HttpGet(
 				"https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=wx58af015bc449fdad&corpsecret=Q9N_PbMW9yW06YXXg1izxTRszztrsYxiCBALqEmIUewkLzr97oa9IsWLAulplxDn");
@@ -248,6 +348,7 @@ public class SendMessage {
 			}
 		}
 	}
+
 	public static void SendPicByTag(String _toTag, String _url, Config _config)
 			throws IOException, InterruptedException, JSONException {
 
